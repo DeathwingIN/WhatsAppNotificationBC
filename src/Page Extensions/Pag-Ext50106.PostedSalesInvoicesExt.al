@@ -14,8 +14,10 @@ pageextension 50106 PostedSalesInvoicesExt extends "Posted Sales Invoices"
                 ApplicationArea = All;
 
                 trigger OnAction()
+                var
+                    WhatsAppMgmt: Codeunit "WhatsApp Management";
                 begin
-                    Message('WhatsApp Reminder clicked for Invoice No. %1', Rec."No.");
+                    WhatsAppMgmt.SendWhatsAppReminder(Rec);
                 end;
             }
         }
