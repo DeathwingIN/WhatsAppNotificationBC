@@ -6,6 +6,13 @@ codeunit 50106 "WhatsApp Management"
         CustomerRec: Record Customer;
         JsonPayload: JsonObject;
         JsonText: Text;
+        PowerAutomateURL: Text;
+        Client: HttpClient;
+        Content: HttpContent;
+        Response: HttpResponseMessage;
+        Request: HttpRequestMessage;
+        ResponseText: Text;
+
 
     begin
         // Find the customer related to the posted sales invoice
@@ -17,16 +24,40 @@ codeunit 50106 "WhatsApp Management"
             Error('Customer does not have a mobile phone number.');
 
         // Construct the JSON payload
-        JsonPayload.Add('CustomerName', CustomerRec.Name);
-        JsonPayload.Add('MobileNo', CustomerRec."Mobile Phone No.");
-        JsonPayload.Add('InvoiceNo', PostSalesInvoice."No.");
-        JsonPayload.Add('Amount', PostSalesInvoice."Amount Including VAT");
-        JsonPayload.Add('DueDate', Format(PostSalesInvoice."Due Date", 0, 9));
-
+        JsonPayload.Add('customerName', CustomerRec.Name);
+        JsonPayload.Add('mobileNumber', CustomerRec."Mobile Phone No.");
+        JsonPayload.Add('invoiceNumber', PostSalesInvoice."No.");
+        JsonPayload.Add('invoiceAmount', PostSalesInvoice."Amount Including VAT");
+        JsonPayload.Add('invoiceDueDate', Format(PostSalesInvoice."Due Date", 0, 9));
         // Convert JSON object to text
         JsonPayload.WriteTo(JsonText);
 
-        Message(JsonText);
+        // Call Power Automate Flow
+        PowerAutomateURL := 'https://14fdfc04406ee18ba16e6b863d3dcf.09.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/cbe3f87454a645558fdd0574aff4e32d/triggers/manual/paths/invoke?api-version=1'
+
+        // Prepare HTTP request
+        Content.WriteFrom(JsonText);
+        Content.GetHeaders(Request.Content.Headers);
+        Request.Content.Headers.Clear();
+        Request.Content.Headers.Add('Content-Type', 'application/json');
+
+        // Set the request method to POST and provide the URL.
+        Request.SetRequestUri(PowerAutomateURL);
+        Request.Method := 'POST';
+        Request.Content := Content;
+
+        // Send HTTP request
+        if not Client.Send(Request, Response) then
+            Error('The call to Power Automate failed.');
+
+        // Check Response
+        if not Response.IsSuccessStatusCode() then begin
+            Response.Content().ReadAs(ResponseText);
+            Error('Power Automate returned an error. Status: %1, Response: %2', Response.HttpStatusCode, ResponseText);
+        end;
+
+        // Success message
+        Message('WhatsApp Reminder sent successfully to %1', CustomerRec."Mobile Phone No.");
     end;
 
 
