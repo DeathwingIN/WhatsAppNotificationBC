@@ -12,6 +12,8 @@ pageextension 50106 PostedSalesInvoicesExt extends "Posted Sales Invoices"
 
                 Image = SendTo;
                 ApplicationArea = All;
+                Promoted = true;
+                PromotedCategory = Process;
 
                 trigger OnAction()
                 var
