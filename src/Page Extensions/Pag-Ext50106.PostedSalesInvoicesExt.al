@@ -22,6 +22,24 @@ pageextension 50106 PostedSalesInvoicesExt extends "Posted Sales Invoices"
                     WhatsAppMgmt.SendWhatsAppReminder(Rec);
                 end;
             }
+
+            action(ViewWhatsAppLog)
+            {
+                Caption = 'WhatsApp Log';
+                ToolTip = 'View WhatsApp message history for this invoice';
+                Image = Log;
+                ApplicationArea = All;
+                Promoted = true;
+                PromotedCategory = Process;
+
+                trigger OnAction()
+                var
+                    WhatsAppLog: Record "WhatsApp Log";
+                begin
+                    WhatsAppLog.SetRange("Document No.", Rec."No.");
+                    Page.Run(Page::"WhatsApp Log", WhatsAppLog);
+                end;
+            }
         }
     }
 }

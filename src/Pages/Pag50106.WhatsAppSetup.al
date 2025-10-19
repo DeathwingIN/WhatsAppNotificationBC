@@ -36,6 +36,27 @@ page 50106 "WhatsApp Setup"
         }
     }
 
+    actions
+    {
+        area(navigation)
+        {
+            action(ViewLog)
+            {
+                Caption = 'View Log';
+                ToolTip = 'View WhatsApp message history';
+                Image = Log;
+                ApplicationArea = All;
+                Promoted = true;
+                PromotedCategory = Process;
+
+                trigger OnAction()
+                begin
+                    Page.Run(Page::"WhatsApp Log");
+                end;
+            }
+        }
+    }
+
     trigger OnOpenPage()
     begin
         Rec.GetSetup();
