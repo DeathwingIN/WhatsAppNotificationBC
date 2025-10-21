@@ -48,10 +48,14 @@ page 50108 "WhatsApp Log FactBox"
     trigger OnAfterGetRecord()
     begin
         case Rec.Status of
-            Rec.Status::Success:
+            Rec.Status::Delivered,
+            Rec.Status::Read:
                 StatusStyle := 'Favorable';
             Rec.Status::Failed:
                 StatusStyle := 'Unfavorable';
+            Rec.Status::Pending,
+            Rec.Status::Sent:
+                StatusStyle := 'Ambiguous';
         end;
     end;
 

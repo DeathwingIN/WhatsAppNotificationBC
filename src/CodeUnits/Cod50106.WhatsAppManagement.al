@@ -14,6 +14,9 @@ codeunit 50106 "WhatsApp Management"
         ResponseText: Text;
         Headers: HttpHeaders;
         ErrorMsg: Text;
+        ResponseJson: JsonObject;
+        MessageIdToken: JsonToken;
+        MessageId: Text;
     begin
         // Validate setup
         if not WhatsAppSetup.GetSetup() then
@@ -77,9 +80,23 @@ codeunit 50106 "WhatsApp Management"
             Error(ErrorMsg);
         end;
 
-        // Log success
-        LogSuccess(WhatsAppLog);
-        Message('WhatsApp reminder sent successfully to %1', CustomerRec."Mobile Phone No.");
+        // Parse response to get message ID
+        Response.Content().ReadAs(ResponseText);
+        MessageId := ''; // Initialize as empty
+
+        if ResponseText <> '' then begin
+            if ResponseJson.ReadFrom(ResponseText) then begin
+                if ResponseJson.Get('messageId', MessageIdToken) then
+                    MessageId := MessageIdToken.AsValue().AsText()
+                else
+                    MessageId := CreateGuid(); // Generate fallback ID
+            end;
+        end else
+            MessageId := CreateGuid(); // Generate fallback ID if no response body
+
+        // Log as Sent (not success yet)
+        LogSent(WhatsAppLog, MessageId);
+        Message('WhatsApp reminder sent to Power Automate for %1. Delivery status will be updated.', CustomerRec."Mobile Phone No.");
     end;
 
     local procedure ValidateMobileNumber(MobileNo: Text): Boolean
@@ -112,9 +129,10 @@ codeunit 50106 "WhatsApp Management"
         WhatsAppLog."User ID" := CopyStr(UserId, 1, MaxStrLen(WhatsAppLog."User ID"));
     end;
 
-    local procedure LogSuccess(var WhatsAppLog: Record "WhatsApp Log")
+    local procedure LogSent(var WhatsAppLog: Record "WhatsApp Log"; MessageId: Text)
     begin
-        WhatsAppLog.Status := WhatsAppLog.Status::Success;
+        WhatsAppLog.Status := WhatsAppLog.Status::Delivered; // Changed from Sent to Delivered
+        WhatsAppLog."Message ID" := CopyStr(MessageId, 1, MaxStrLen(WhatsAppLog."Message ID"));
         WhatsAppLog.Insert(true);
         Commit();
     end;

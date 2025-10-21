@@ -51,6 +51,11 @@ table 50107 "WhatsApp Log"
             Caption = 'Error Message';
             DataClassification = SystemMetadata;
         }
+        field(10; "Message ID"; Text[100])
+        {
+            Caption = 'Message ID';
+            DataClassification = CustomerContent;
+        }
     }
 
     keys
@@ -66,11 +71,23 @@ enum 50106 "WhatsApp Log Status"
 {
     Extensible = true;
 
-    value(0; Success)
+    value(0; Pending)
     {
-        Caption = 'Success';
+        Caption = 'Pending';
     }
-    value(1; Failed)
+    value(1; Sent)
+    {
+        Caption = 'Sent to Power Automate';
+    }
+    value(2; Delivered)
+    {
+        Caption = 'Delivered';
+    }
+    value(3; Read)
+    {
+        Caption = 'Read';
+    }
+    value(4; Failed)
     {
         Caption = 'Failed';
     }

@@ -58,6 +58,11 @@ page 50107 "WhatsApp Log"
                     ToolTip = 'Specifies the error message if the send failed';
                     Visible = ShowErrors;
                 }
+                field("Message ID"; Rec."Message ID")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the WhatsApp message ID';
+                }
             }
         }
         area(factboxes)
@@ -109,8 +114,8 @@ page 50107 "WhatsApp Log"
             }
             action(ShowSuccessOnly)
             {
-                Caption = 'Show Success Only';
-                ToolTip = 'Show only successful messages';
+                Caption = 'Show Delivered Only';
+                ToolTip = 'Show only delivered messages';
                 Image = Approve;
                 ApplicationArea = All;
                 Promoted = true;
@@ -119,7 +124,7 @@ page 50107 "WhatsApp Log"
                 trigger OnAction()
                 begin
                     Rec.Reset();
-                    Rec.SetRange(Status, Rec.Status::Success);
+                    Rec.SetFilter(Status, '%1|%2', Rec.Status::Delivered, Rec.Status::Read);
                     ShowErrors := false;
                     CurrPage.Update(false);
                 end;
@@ -192,10 +197,14 @@ page 50107 "WhatsApp Log"
     local procedure SetStatusStyle()
     begin
         case Rec.Status of
-            Rec.Status::Success:
+            Rec.Status::Delivered,
+            Rec.Status::Read:
                 StatusStyle := 'Favorable';
             Rec.Status::Failed:
                 StatusStyle := 'Unfavorable';
+            Rec.Status::Pending,
+            Rec.Status::Sent:
+                StatusStyle := 'Ambiguous';
         end;
     end;
 
